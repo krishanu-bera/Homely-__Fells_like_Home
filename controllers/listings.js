@@ -1,9 +1,9 @@
 const { model } = require("mongoose");
 const Listing = require("../models/listings.js");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
-const mapTokon = process.env.MAP_TOKEN;
+const mapToken = process.env.MAP_TOKEN;
 
-const geocodingClient= mbxGeocoding({ accessToken: mapTokon });
+const geocodingClient= mbxGeocoding({ accessToken: mapToken });
 
 module.exports.index = async(req,res)=>{
   const all = await Listing.find({});
@@ -37,28 +37,20 @@ module.exports.show = async (req,res)=>{
 
 
 module.exports.create  = async (req, res, next) => {
-  // let response = await geocodingClient.forwardGeocode({
-  //     query: req.body.listing.location,
-  //     limit: 1,
-  // })
-  // .send();
-  // console.log(response.body.features[0].geometry);
-  // res.send("save");
-  
-  // let url = req.file.path;
-  // let filename = req.file.filename;
-  //let url = req.file?.path || "";
-  //let filename = req.file?.filename || "";
+  let response = await geocodingClient.forwardGeocode({
+      query: req.body.listing.location,
+      limit: 1,
+  })
+  .send();
   
   const newListing = new Listing(req.body.listing);
   newListing.owner = req.user._id;
-  //newListing.image = {url,filename};
+  
   if (req.file) {
     newListing.image = { url: req.file.path, filename: req.file.filename };
   }
-  //newListing.price = newListing.price?.toLocaleString("en-IN");
 
-  //newListing.geometry = response.body.features[0].geometry;
+  newListing.geometry = response.body.features[0].geometry;
   await newListing.save();
   
   req.flash("success", "New Listing Created!");

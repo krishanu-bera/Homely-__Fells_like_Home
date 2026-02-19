@@ -39,7 +39,7 @@
     "es-object-atoms": "^1.1.1",
     "escape-html": "^1.0.3",
     "etag": "^1.8.1",
-    "express": "^5.1.0",
+    "express": "^4.19.2",
     "express-session": "^1.18.1",
     "filelist": "^1.0.4",
     "finalhandler": "^2.1.0",

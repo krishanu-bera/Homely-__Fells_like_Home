@@ -1,8 +1,7 @@
 if(process.env.NODE_ENV !="production"){
   require('dotenv').config();
+  
 }
-
-
 
 const express = require("express");
 const app = express();
@@ -10,9 +9,7 @@ const port = 8080;
 const path = require("path");
 const mongoose = require('mongoose');
 
-//const app = express();
-
-const  session = require("express-session");
+const session = require("express-session");
 const flash = require("connect-flash");
 
 const methodOverride = require("method-override");
@@ -20,10 +17,13 @@ const ejs_mate = require("ejs-mate");
 
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
-const userRouter = require("./routes/user.js");const passport = require("passport");
+const userRouter = require("./routes/user.js");
+
+const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
+const ExpressErr = require("./utils/ExpressErr.js");
 
 main().then(()=>{
   console.log("connected to db");
@@ -31,7 +31,8 @@ main().then(()=>{
 .catch(err => console.log(err));
 
 async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/airbin'); 
+  await mongoose.connect('mongodb://127.0.0.1:27017/airbnb'); 
+
 }
 
 
@@ -44,19 +45,23 @@ app.use(methodOverride("_method"));
 app.engine("ejs",ejs_mate);
 
 const sessionOptions = {
-  secret:"myserectCode",
+  secret:"mySecretCode",
   resave: false,
   saveUninitialized : true,
   cookie:{
-    expries: Date.now() + 7 * 24 *60 *60 *1000,
+    expires: Date.now() + 7 * 24 *60 *60 *1000,
     maxAge:7 * 24 *60 *60 *1000,
-    httpOnly : true 
+    httpOnly : true
   },
 };
-//root rought
+//root route
 app.get("/",(req,res)=>{
   res.send("Page not found : 404 ");
 });
+
+app.get("/Api",(req,res)=>{
+  res.send("Hii I am an http get Api");
+})
 
 
 app.use(session(sessionOptions));
@@ -74,39 +79,21 @@ app.use((req,res,next)=>{
   res.locals.error = req.flash("error");
   res.locals.currUser = req.user;
   next();
-})
+});
 
+app.use("/listings", listingRouter);
+app.use("/listings/:listingId/reviews", reviewRouter);
+app.use("/", userRouter);
 
-
-
-const validateListing = (req,res,next)=>{
-  let result = listingSchema.validate(req.body);
-  console.log(result);
-}
-
-const validateReview = (req,res,next)=>{
-  let result = listingSchema.validate(req.body);
-  console.log(result);
-}
-
-app.use("/listings",listingRouter);
-app.use("/listings/:id/reviews",reviewRouter);
-app.use("/",userRouter);
-
-// app.all("*",(req,res,next)=>{
-//   next(new ExpressErr(404,"Page is not found!"));
-// });
-
+app.all("*",(req,res,next)=>{
+  next(new ExpressErr(404,"Page is not found!"));
+});
 
 app.use((err,req,res,next)=>{
-
-  let{status=500,message='somthing went Wrong'} = err;
-  res.render("err.ejs");
- // res.status(status).send(message);
-  //console.log("Somthing went wrong");
-})
-
+  let{status=500,message='something went wrong'} = err;
+  res.status(status).render("err.ejs", {message});
+});
 
 app.listen(port,()=>{
-  console.log("app is listing on port 8080");
-})
+  console.log("app is listening on port 8080");
+});

@@ -1,5 +1,7 @@
 const Listing = require("./models/listings");
 const Review = require("./models/review");
+const ExpressErr = require("./utils/ExpressErr.js");
+const { listingSchema, reviewsSchema } = require("./schema.js");
 module.exports.isLoggedin = (req, res, next) => {
     if (!req.isAuthenticated()) {
         // Save the original URL they were trying to access
@@ -36,4 +38,24 @@ module.exports.isAuthor= async (req, res, next) => {
     return res.redirect(`/listings/${id}`);
   }
   next();
+};
+
+module.exports.validateListing = (req,res,next)=>{
+  let {error} = listingSchema.validate(req.body);
+  if(error){
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressErr(400, errMsg);
+  } else {
+    next();
+  }
+};
+
+module.exports.validateReview = (req,res,next)=>{
+  let {error} = reviewsSchema.validate(req.body);
+  if(error){
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressErr(400, errMsg);
+  } else {
+    next();
+  }
 };
