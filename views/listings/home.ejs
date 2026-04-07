@@ -1,0 +1,78 @@
+<% layout("layouts/boilerplate") %>
+
+<section class="home-hero">
+    <div class="home-hero-copy">
+        <span class="hero-kicker">Curated Stays</span>
+        <h1 class="hero-title hero-title-home">Find your perfect stay <span class="hero-break">&mdash;</span><br>anywhere, anytime.</h1>
+        <p class="hero-copy hero-copy-home">Search hotels, compare prices, and book your stay in minutes.</p>
+        <div class="hero-actions">
+            <a href="/listings" class="btn btn-warm">Explore Stays</a>
+            <a href="/listings/new" class="btn btn-soft">Host a Stay</a>
+        </div>
+        <p class="hero-trust">⭐ 10,000+ stays • Trusted by travelers</p>
+    </div>
+    <form action="/listings" method="GET" class="hero-search-card">
+        <div class="hero-search-head">
+            <span class="detail-kicker">Quick Search</span>
+            <h2 class="hero-search-title">Search your destination</h2>
+        </div>
+        <div class="hero-search-grid">
+            <div>
+                <label class="form-label" for="hero-q">Search</label>
+                <input id="hero-q" class="form-control" type="text" name="q" value="<%= filters.q %>" placeholder="Search hotels, cities, or destinations">
+            </div>
+            <div>
+                <label class="form-label" for="hero-category">Category</label>
+                <select id="hero-category" class="form-select" name="category">
+                    <option value="">All stays</option>
+                    <% for (const card of categoryCards) { %>
+                        <option value="<%= card.name %>"><%= card.name %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="hero-guests">Guests</label>
+                <input id="hero-guests" class="form-control" type="number" min="1" name="guests" value="<%= filters.guests %>" placeholder="2">
+            </div>
+            <div>
+                <label class="form-label" for="hero-max">Max budget</label>
+                <input id="hero-max" class="form-control" type="number" min="0" name="maxPrice" value="<%= filters.maxPrice %>" placeholder="10000">
+            </div>
+        </div>
+        <button class="btn btn-warm submit-btn">Search Now</button>
+    </form>
+</section>
+
+<section class="home-section">
+    <div class="section-heading">
+        <div>
+            <span class="detail-kicker">Featured</span>
+            <h2 class="h1 section-title">Highlighted stays</h2>
+        </div>
+        <a href="/listings" class="btn btn-soft">See all listings</a>
+    </div>
+    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 discover-grid">
+        <% for (const listing of featuredListings) { %>
+            <div class="col">
+                <a href="/listings/<%= listing._id %>" class="listing-link">
+                    <div class="card listing-card">
+                        <div class="card-thumb">
+                            <img src="<%= listing.image?.url %>" class="card-img-top" alt="<%= listing.title %>">
+                        </div>
+                        <div class="card-body">
+                            <div class="listing-chip-row">
+                                <div class="listing-location"><%= listing.location %>, <%= listing.country %></div>
+                                <div class="listing-badge"><%= listing.category || "Luxury" %></div>
+                            </div>
+                            <h3 class="listing-title"><%= listing.title %></h3>
+                            <div class="listing-meta-line">
+                                <span><i class="fa-solid fa-user-group"></i> <%= listing.maxGuests || 2 %> guests</span>
+                                <span><i class="fa-solid fa-indian-rupee-sign"></i> <%= listing.price.toLocaleString("en-In") %>/night</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        <% } %>
+    </div>
+</section>

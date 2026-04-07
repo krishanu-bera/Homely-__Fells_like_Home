@@ -1,36 +1,118 @@
-
-
 <% layout("layouts/boilerplate") %>
+<% const hasActiveFilters = filters.q || filters.location || filters.country || filters.category || filters.guests || filters.minPrice || filters.maxPrice; %>
 
-<body>
-    
-    <!-- <form method="GET" action="/listings/new" >
-        <button>Create new</button>
-    </form> -->
-    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
-        <% for(let listing of all){ %>
-            <a href="/listings/<%= listing._id %>" class="listing-link">
-            <div class="card" >
-
-                <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style=" height: 20rem;">
-                <div class="card-img-overlay">
-                  
-                </div>
-                <div class="card-body">
-                  <p class="card-text"> 
-                    
-                   <b> <%= listing.title %> </b><br>
-                   &#8377;<%= listing.price ? listing.price.toLocaleString("en-In") : 'N/A' %> /night
-                   
-                  </p>
-                </div>
-            </div>
-          </a>
+<section class="page-hero listings-hero">
+    <div class="listings-hero-copy">
+        <span class="hero-kicker">Explore Stays</span>
+        <h1 class="hero-title">Search by place, category, guests, and budget.</h1>
+        <p class="hero-copy">
+            <% if (hasActiveFilters) { %>
+                Filter applied. The results below are already narrowed for you.
+            <% } else { %>
+                Use the filters below to cut through the catalog fast and only open stays that fit the trip.
             <% } %>
-
-
+        </p>
     </div>
-    
+    <% if (hasActiveFilters) { %>
+        <div class="filter-summary">
+            <div class="filter-chip-row">
+                <% if (filters.q) { %><span class="filter-chip">Search: <%= filters.q %></span><% } %>
+                <% if (filters.location) { %><span class="filter-chip">City: <%= filters.location %></span><% } %>
+                <% if (filters.country) { %><span class="filter-chip">Country: <%= filters.country %></span><% } %>
+                <% if (filters.category) { %><span class="filter-chip">Category: <%= filters.category %></span><% } %>
+                <% if (filters.guests) { %><span class="filter-chip">Guests: <%= filters.guests %></span><% } %>
+                <% if (filters.minPrice) { %><span class="filter-chip">Min: &#8377;<%= Number(filters.minPrice).toLocaleString("en-In") %></span><% } %>
+                <% if (filters.maxPrice) { %><span class="filter-chip">Max: &#8377;<%= Number(filters.maxPrice).toLocaleString("en-In") %></span><% } %>
+            </div>
+            <div class="filter-actions">
+                <a href="/listings" class="btn btn-soft">Clear filters</a>
+            </div>
+        </div>
+    <% } else { %>
+        <form action="/listings" method="GET" class="filter-panel">
+            <div class="filter-grid">
+                <input class="form-control" type="text" name="q" value="<%= filters.q %>" placeholder="Search title, city, country">
+                <input class="form-control" type="text" name="location" value="<%= filters.location %>" placeholder="City">
+                <input class="form-control" type="text" name="country" value="<%= filters.country %>" placeholder="Country">
+                <select class="form-select" name="category">
+                    <option value="">All categories</option>
+                    <% for (const category of categories) { %>
+                        <option value="<%= category %>" <%= filters.category === category ? "selected" : "" %>><%= category %></option>
+                    <% } %>
+                </select>
+                <input class="form-control" type="number" min="1" name="guests" value="<%= filters.guests %>" placeholder="Guests">
+                <input class="form-control" type="number" min="0" name="minPrice" value="<%= filters.minPrice %>" placeholder="Min price">
+                <input class="form-control" type="number" min="0" name="maxPrice" value="<%= filters.maxPrice %>" placeholder="Max price">
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-warm" type="submit">Apply filters</button>
+                <a href="/listings" class="btn btn-soft">Reset</a>
+            </div>
+        </form>
+    <% } %>
+</section>
 
-</body>
-</html>
+<section class="stay-icons">
+    <a href="/listings?category=Luxury" class="stay-icon-card">
+        <span class="stay-icon"><i class="fa-solid fa-house"></i></span>
+        <span class="stay-icon-label">Luxury</span>
+    </a>
+    <a href="/listings?category=Pool" class="stay-icon-card">
+        <span class="stay-icon"><i class="fa-solid fa-water-ladder"></i></span>
+        <span class="stay-icon-label">Pools</span>
+    </a>
+    <a href="/listings?category=City" class="stay-icon-card">
+        <span class="stay-icon"><i class="fa-solid fa-city"></i></span>
+        <span class="stay-icon-label">City</span>
+    </a>
+    <a href="/listings?category=Beach" class="stay-icon-card">
+        <span class="stay-icon"><i class="fa-solid fa-umbrella-beach"></i></span>
+        <span class="stay-icon-label">Beach</span>
+    </a>
+    <a href="/listings?category=Romantic" class="stay-icon-card">
+        <span class="stay-icon"><i class="fa-solid fa-heart"></i></span>
+        <span class="stay-icon-label">Romantic</span>
+    </a>
+    <a href="/listings?category=Skyline" class="stay-icon-card">
+        <span class="stay-icon"><i class="fa-solid fa-building"></i></span>
+        <span class="stay-icon-label">Skyline</span>
+    </a>
+    <a href="/listings/new" class="stay-icon-card stay-icon-card-accent">
+        <span class="stay-icon"><i class="fa-solid fa-plus"></i></span>
+        <span class="stay-icon-label">Host</span>
+    </a>
+</section>
+
+<% if (all.length) { %>
+    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 discover-grid">
+        <% for(let listing of all){ %>
+            <div class="col">
+                <a href="/listings/<%= listing._id %>" class="listing-link">
+                    <div class="card listing-card">
+                        <div class="card-thumb">
+                            <img src="<%= listing.image?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267' %>" class="card-img-top" alt="<%= listing.title %>">
+                        </div>
+                        <div class="card-body">
+                            <div class="listing-chip-row">
+                                <div class="listing-location"><%= listing.location || "Anywhere" %>, <%= listing.country || "Earth" %></div>
+                                <div class="listing-badge"><%= listing.category || "Luxury" %></div>
+                            </div>
+                            <h3 class="listing-title"><%= listing.title %></h3>
+                            <div class="listing-meta-line">
+                                <span><i class="fa-solid fa-user-group"></i> <%= listing.maxGuests || 2 %> guests</span>
+                            </div>
+                            <p class="listing-price">&#8377;<%= listing.price ? listing.price.toLocaleString("en-In") : 'N/A' %> <span>/ night</span></p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        <% } %>
+    </div>
+<% } else { %>
+    <div class="empty-state">
+        <span class="hero-kicker">No Match</span>
+        <h2 class="detail-title">No stays matched these filters.</h2>
+        <p class="detail-copy">Try widening the budget, removing a category, or switching the city search.</p>
+        <a href="/listings" class="btn btn-soft">Reset filters</a>
+    </div>
+<% } %>

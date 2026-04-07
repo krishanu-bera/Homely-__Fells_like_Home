@@ -1,7 +1,8 @@
 const Listing = require("./models/listings");
 const Review = require("./models/review");
+const User = require("./models/user");
 const ExpressErr = require("./utils/ExpressErr.js");
-const { listingSchema, reviewsSchema } = require("./schema.js");
+const { listingSchema, reviewsSchema, bookingSchema } = require("./schema.js");
 module.exports.isLoggedin = (req, res, next) => {
     if (!req.isAuthenticated()) {
         // Save the original URL they were trying to access
@@ -14,6 +15,25 @@ module.exports.isLoggedin = (req, res, next) => {
     next(); // Allow access to the route if authenticated
 };
 
+module.exports.isApiLoggedIn = async (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+
+    const sessionUserId = req.session?.passport?.user;
+    if (sessionUserId) {
+        const user = await User.findById(sessionUserId);
+        if (user) {
+            req.user = user;
+            return next();
+        }
+    }
+
+    return res.status(401).json({
+        error: "Authentication required.",
+    });
+};
+
 module.exports.saveRedirectUrl = (req,res,next)=>{
     if(req.session.redirectUrl){
         res.locals.redirectUrl = req.session.redirectUrl;
@@ -23,6 +43,10 @@ module.exports.saveRedirectUrl = (req,res,next)=>{
 module.exports.isOwner = async (req, res, next) => {
   const { id } = req.params;
   const listing = await Listing.findById(id);
+  if (!listing) {
+    req.flash("error", "Listing does not exist!");
+    return res.redirect("/listings");
+  }
   if (!listing.owner.equals(req.user._id)) {
     req.flash("error", "You are not authorized to do that.");
     return res.redirect(`/listings/${id}`);
@@ -31,11 +55,15 @@ module.exports.isOwner = async (req, res, next) => {
 };
 
 module.exports.isAuthor= async (req, res, next) => {
-  const { id,reviewId } = req.params;
+  const { listingId, reviewId } = req.params;
   const review = await Review.findById(reviewId );
+  if (!review) {
+    req.flash("error", "Review does not exist!");
+    return res.redirect(`/listings/${listingId}`);
+  }
   if (!review.author.equals(req.user._id)) {
     req.flash("error", "You are not authorized to do that.");
-    return res.redirect(`/listings/${id}`);
+    return res.redirect(`/listings/${listingId}`);
   }
   next();
 };
@@ -50,9 +78,27 @@ module.exports.validateListing = (req,res,next)=>{
   }
 };
 
+module.exports.validateApiListing = (req, res, next) => {
+  if (!req.body.listing) {
+    req.body = { listing: req.body };
+  }
+
+  return module.exports.validateListing(req, res, next);
+};
+
 module.exports.validateReview = (req,res,next)=>{
   let {error} = reviewsSchema.validate(req.body);
   if(error){
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressErr(400, errMsg);
+  } else {
+    next();
+  }
+};
+
+module.exports.validateBooking = (req, res, next) => {
+  let { error } = bookingSchema.validate(req.body);
+  if (error) {
     let errMsg = error.details.map((el) => el.message).join(",");
     throw new ExpressErr(400, errMsg);
   } else {

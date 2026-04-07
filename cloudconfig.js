@@ -11,7 +11,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'Airbnb_dev',
     allowedFormats: ["png","jpg","jpeg"],
-    public_id: (req, file) => 'computed-filename-using-request',
+    public_id: (req, file) => `${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
   },
 });
 

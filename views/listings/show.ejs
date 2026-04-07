@@ -1,49 +1,143 @@
 <% layout("layouts/boilerplate") %>
+<% const coordinates = listing.geometry?.coordinates || null; %>
+<% const ownerName = listing.owner?.username || "Unknown host"; %>
+<% const gallery = listing.gallery?.length ? listing.gallery : [listing.image].filter(Boolean); %>
+<% const today = new Date().toISOString().split("T")[0]; %>
 <script>
   const mapToken ="<%= process.env.MAP_TOKEN %>";
- 
+  const coordinates = <%- JSON.stringify(coordinates) %>;
 </script>
-<div class="row mt-3 mb-3">
-  <div class="col-8 offset-3 ">
-    <h2> <b><%= listing.title %> </b></h2>
-  </div>
-      
-    <div class="card col-6 offset-3 show-card ls">
-      <img src="<%= listing.image.url %>" class="card-img-top show-img mt-3" >
-      <br>
-       <p><b> Created by : </b><i><%= listing.owner.username %></i><br></p> 
-       <p> <%= listing.description %> </p> 
-        <p>&#8377;<%= listing.price ? listing.price.toLocaleString("en-In") : 'N/A' %> /night</p> 
-        <p><%= listing.location %></p> 
-        <p><%= listing.country %> </p> 
-      
-        
-        
+<section class="page-hero">
+  <span class="detail-kicker">Stay Profile</span>
+  <h1 class="detail-title"><%= listing.title %></h1>
+  <p class="detail-copy">Hosted by <strong><%= ownerName %></strong> in <%= listing.location %>, <%= listing.country %>.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <strong>&#8377;<%= listing.price ? listing.price.toLocaleString("en-In") : 'N/A' %></strong>
+      <span>nightly rate</span>
     </div>
-      
-  
-  
-    <% if(currUser && currUser._id.equals(listing.owner._id)){ %>
-        <div class=" btns mt-3">
-          <a href="/listings/<%= listing._id %>/edit" class="  btn btn-outline-dark col-1 offset-3 mb-3">Edit </a>
-          <br /><br />
-          <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE">
-            <button class="btn btn-outline-danger offset-5 mb-6">Delete </button>
-          </form>
+    <div class="hero-stat">
+      <strong><%= listing.reviews.length %></strong>
+      <span>guest notes posted</span>
+    </div>
+    <div class="hero-stat">
+      <strong><%= listing.maxGuests || 2 %></strong>
+      <span>guests can stay</span>
+    </div>
+  </div>
+</section>
+
+<div class="detail-wrap">
+  <div>
+    <article class="listing-detail-card show-card ls">
+      <div class="gallery-shell">
+        <img src="<%= gallery[0]?.url %>" class="detail-image show-img" alt="<%= listing.title %>">
+        <% if (gallery.length > 1) { %>
+          <div class="gallery-grid">
+            <% for (const image of gallery.slice(1, 5)) { %>
+              <img src="<%= image.url %>" alt="<%= listing.title %> gallery image" class="gallery-thumb">
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+      <div class="detail-meta">
+        <p class="detail-copy"><%= listing.description %></p>
+        <div class="detail-meta-grid">
+          <div class="meta-pill">
+            <span>Nightly Rate</span>
+            <strong>&#8377;<%= listing.price ? listing.price.toLocaleString("en-In") : 'N/A' %></strong>
+          </div>
+          <div class="meta-pill">
+            <span>Location</span>
+            <strong><%= listing.location %>, <%= listing.country %></strong>
+          </div>
+          <div class="meta-pill">
+            <span>Category</span>
+            <strong><%= listing.category || "Luxury" %></strong>
+          </div>
+          <div class="meta-pill">
+            <span>Guest Limit</span>
+            <strong><%= listing.maxGuests || 2 %> guests</strong>
+          </div>
         </div>
-    <%} %>
-    
+
+        <% if(listing.owner && currUser && currUser._id.equals(listing.owner._id)){ %>
+          <div class="owner-actions">
+            <a href="/listings/<%= listing._id %>/edit" class="btn btn-soft">Edit Listing</a>
+            <form method="POST" action="/listings/<%=listing._id%>">
+              <input type="hidden" name="_method" value="DELETE">
+              <button class="btn btn-warm">Delete Listing</button>
+            </form>
+          </div>
+        <% } %>
+      </div>
+    </article>
+
+    <% if (coordinates) { %>
+      <section class="map-panel">
+        <span class="detail-kicker">Area</span>
+        <h2 class="h4 mb-3">Where you'll be</h2>
+        <div id="map"></div>
+      </section>
+    <% } %>
+  </div>
+
+  <div>
+    <section class="review-panel booking-panel">
+      <span class="detail-kicker">Reserve</span>
+      <h2 class="h4 mb-3">Book your destination now</h2>
+      <form action="/listings/<%= listing._id %>/bookings" method="POST" class="booking-form">
+        <div class="booking-grid">
+          <div>
+            <label for="checkIn" class="form-label">Check-in</label>
+            <input id="checkIn" type="date" name="booking[checkIn]" min="<%= today %>" class="form-control" required>
+          </div>
+          <div>
+            <label for="checkOut" class="form-label">Check-out</label>
+            <input id="checkOut" type="date" name="booking[checkOut]" min="<%= today %>" class="form-control" required>
+          </div>
+          <div>
+            <label for="guests" class="form-label">Guests</label>
+            <input id="guests" type="number" name="booking[guests]" min="1" max="<%= listing.maxGuests || 2 %>" value="1" class="form-control" required>
+          </div>
+        </div>
+        <div class="booking-summary">
+          <div>
+            <span>Rate</span>
+            <strong>&#8377;<%= listing.price ? listing.price.toLocaleString("en-In") : 'N/A' %>/night</strong>
+          </div>
+          <div>
+            <span>Capacity</span>
+            <strong><%= listing.maxGuests || 2 %> guests</strong>
+          </div>
+        </div>
+        <% if(currUser){ %>
+          <button class="btn btn-warm submit-btn">Confirm booking</button>
+        <% } else { %>
+          <a href="/login" class="btn btn-warm submit-btn">Login to book</a>
+        <% } %>
+      </form>
+      <% if (bookings.length) { %>
+        <div class="booking-notes">
+          <h3 class="h6 mb-3">Upcoming bookings</h3>
+          <% for (const booking of bookings) { %>
+            <div class="booking-note">
+              <strong><%= booking.dateLabel %></strong>
+              <span><%= booking.guests %> guests<% if (booking.guest?.username) { %> • booked by <%= booking.guest.username %><% } %></span>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+    </section>
+
     <% if(currUser){ %>
-   
-      <div class="col-6 offset-3 mb-3">
-    
-        <h4>Leave some review</h4>
+      <section class="review-panel">
+        <span class="detail-kicker">Leave a Note</span>
+        <h2 class="h4 mb-3">Leave a Review</h2>
         <form action="/listings/<%= listing._id %>/reviews" method="post" novalidate class="needs-validation">
-         
           <div class="mt-3 mb-3">
-           <label for="rating" class="form-label">Rating</label>
+            <label for="rating" class="form-label">Rating</label>
             <fieldset class="starability-slot">
-              
               <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="1" checked aria-label="No rating." />
               <input type="radio" id="first-rate1" name="review[rating]" value="1" />
               <label for="first-rate1" title="Terrible">1 star</label>
@@ -58,66 +152,50 @@
             </fieldset>
           </div>
           <div class="mt-3 mb-3">
-            <label for="comment"class="form-label">comment</label>
+            <label for="comment" class="form-label">Comment</label>
             <textarea name="review[comment]" id="comment" class="form-control" required></textarea>
-          </div >
-          <button class="btn btn-outline-dark mt-3">Submit</button>
+          </div>
+          <button class="btn btn-warm submit-btn">Submit Review</button>
         </form>
+      </section>
+    <% } %>
 
-      </div>
-    <%}%>
-   
-    
-    <div class="col-6 offset-3">
-      <hr>
-      <p><b> All Reviews :</b></p>
-      
-      
-      <div class="row mb-3">
-        <% for(review of listing.reviews) { %>
-              <div class="card col-5 ms-3  mt-3" >
-                <div class="card-body">
-                  <h5 class="card-title"><b>creater:</b> @ <%= review.author.username %> </h5>
-
-                   <p class="starability-result" data-rating="<%= review.rating %>">
-                   
-                    </p>
-                   
-                  <h5 class="card-title"><%= review.comment %></h5>
-                  
-                  
-                  
-                  
-                </div>
-                <form method="post" action="/listings/<%=listing._id %>/reviews/<%=review._id %>?_method=DELETE" >
-                  <button class="btn btn-sm btn-outline-danger mb-3">delete</button>
-                </form>
+    <section class="review-panel">
+      <span class="detail-kicker">Feedback</span>
+      <h2 class="h4 mb-3">All Reviews</h2>
+      <% if (listing.reviews.length) { %>
+        <div class="review-list">
+          <% for(review of listing.reviews) { %>
+            <div class="review-card">
+              <div class="card-body">
+                <h5 class="card-title"><b>Guest:</b> @<%= review.author?.username || "Deleted user" %></h5>
+                <p class="starability-result" data-rating="<%= review.rating %>"></p>
+                <p class="review-copy mb-3"><%= review.comment %></p>
               </div>
-        <%} %>
-      </div>
-      
-    </div>
-    <div class="col-6 offset-3 mb-3">
-        <h2>Where you'll be</h2>
-         <div id="map"></div>
-      </div>
-      
-
+              <form method="post" action="/listings/<%=listing._id %>/reviews/<%=review._id %>" class="review-actions">
+                <input type="hidden" name="_method" value="DELETE">
+                <button class="btn btn-soft btn-sm">Delete Review</button>
+              </form>
+            </div>
+          <% } %>
+        </div>
+      <% } else { %>
+        <p class="review-copy mb-0">No reviews yet. Be the first person to leave one.</p>
+      <% } %>
+    </section>
+  </div>
 </div>
 <script>
-  mapboxgl.accessToken = mapToken;
+  if (coordinates) {
+    mapboxgl.accessToken = mapToken;
     const map = new mapboxgl.Map({
-        container: 'map', // container ID
-        center: coordinates, // starting position [lng, lat]. Note that lat must be set between -90 and 90
-        zoom: 9 // starting zoom
+        container: 'map',
+        center: coordinates,
+        zoom: 9
     });
 
-     const marker1 = new mapboxgl.Marker()
-        .setLngLat(coordinates)
-        .addTo(map);
-
-
+    new mapboxgl.Marker()
+      .setLngLat(coordinates)
+      .addTo(map);
+  }
 </script>
-        
-     
-        

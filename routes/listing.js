@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const wrapAsync = require("../utils/wrapAsync.js");
-const ExpressErr = require("../utils/ExpressErr.js");
 
 const {isLoggedin, isOwner, validateListing} = require("../middleware.js");
 
@@ -14,7 +13,7 @@ const upload = multer({storage});
 
 router.route("/")
 .get(wrapAsync(listingController.index))
-.post(isLoggedin, upload.single("listing[image]"), validateListing,
+.post(isLoggedin, upload.array("listing[images]", 6), validateListing,
  wrapAsync(listingController.create));
 
 //New Route
@@ -22,7 +21,7 @@ router.get("/new",isLoggedin,listingController.renderNewForm);
 
 router.route("/:id")
 .get(wrapAsync(listingController.show))
-.put(isLoggedin, isOwner, upload.single("listing[image]"), validateListing,
+.put(isLoggedin, isOwner, upload.array("listing[images]", 6), validateListing,
     wrapAsync(listingController.update))
 .delete(isLoggedin, isOwner, wrapAsync(listingController.delete));
 

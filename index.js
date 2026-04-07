@@ -16,14 +16,20 @@ const methodOverride = require("method-override");
 const ejs_mate = require("ejs-mate");
 
 const listingRouter = require("./routes/listing.js");
+const bookingRouter = require("./routes/booking.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
+const listingController = require("./controllers/listings.js");
+const { isApiLoggedIn, isLoggedin, validateApiListing } = require("./middleware.js");
 
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
 const ExpressErr = require("./utils/ExpressErr.js");
+const wrapAsync = require("./utils/wrapAsync.js");
+const dbUrl = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/airbnb";
+const sessionSecret = process.env.SESSION_SECRET || "mySecretCode";
 
 main().then(()=>{
   console.log("connected to db");
@@ -31,21 +37,32 @@ main().then(()=>{
 .catch(err => console.log(err));
 
 async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/airbnb'); 
+  await mongoose.connect(dbUrl); 
 
 }
 
 
 
 app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 app.set("view engine","ejs");
 app.set("views",path.join(__dirname,"views"));
 app.use(express.static(path.join(__dirname,"public")));
-app.use(methodOverride("_method"));
+app.use(methodOverride((req) => {
+  if (req.body && typeof req.body === "object" && "_method" in req.body) {
+    const method = req.body._method;
+    delete req.body._method;
+    return method;
+  }
+
+  if (req.query && typeof req.query._method === "string") {
+    return req.query._method;
+  }
+}));
 app.engine("ejs",ejs_mate);
 
 const sessionOptions = {
-  secret:"mySecretCode",
+  secret: sessionSecret,
   resave: false,
   saveUninitialized : true,
   cookie:{
@@ -54,11 +71,6 @@ const sessionOptions = {
     httpOnly : true
   },
 };
-//root route
-app.get("/",(req,res)=>{
-  res.send("Page not found : 404 ");
-});
-
 app.get("/Api",(req,res)=>{
   res.send("Hii I am an http get Api");
 })
@@ -81,16 +93,29 @@ app.use((req,res,next)=>{
   next();
 });
 
+//root route
+app.get("/", wrapAsync(listingController.home));
+
+app.get("/api/listings", listingController.apiIndex);
+app.post("/api/listings", wrapAsync(isApiLoggedIn), validateApiListing, wrapAsync(listingController.apiCreate));
+app.get("/listings/api", listingController.apiIndex);
+app.post("/listings/api", wrapAsync(isApiLoggedIn), validateApiListing, wrapAsync(listingController.apiCreate));
 app.use("/listings", listingRouter);
+app.use("/listings/:id/bookings", bookingRouter);
 app.use("/listings/:listingId/reviews", reviewRouter);
 app.use("/", userRouter);
 
-app.all("*",(req,res,next)=>{
+app.use((req,res,next)=>{
   next(new ExpressErr(404,"Page is not found!"));
 });
 
 app.use((err,req,res,next)=>{
+  console.error(err);
   let{status=500,message='something went wrong'} = err;
+  const isApiRequest = req.originalUrl.startsWith("/api/");
+  if (isApiRequest) {
+    return res.status(status).json({ error: message });
+  }
   res.status(status).render("err.ejs", {message});
 });
 

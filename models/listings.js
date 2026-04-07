@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const review = require("./review");
+const Review = require("./review");
+const Booking = require("./booking");
 const Schema = mongoose.Schema;
 
 const listingSchema = new Schema({
@@ -12,9 +13,24 @@ const listingSchema = new Schema({
     url:String,
     filename:String,
   },
+  gallery: [
+    {
+      url: String,
+      filename: String,
+    }
+  ],
   price: Number,
   location: String,
   country: String,
+  category: {
+    type: String,
+    default: "Luxury",
+  },
+  maxGuests: {
+    type: Number,
+    default: 2,
+    min: 1,
+  },
   reviews:[
     {
       type:Schema.Types.ObjectId,
@@ -39,7 +55,8 @@ const listingSchema = new Schema({
 
 listingSchema.post("findOneAndDelete",async(listing)=>{
   if(listing){
-    await review.deleteMany({review: {$in:listing.reviews}});
+    await Review.deleteMany({ _id: { $in: listing.reviews } });
+    await Booking.deleteMany({ listing: listing._id });
   }
   
 

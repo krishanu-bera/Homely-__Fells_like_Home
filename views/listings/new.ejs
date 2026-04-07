@@ -1,64 +1,69 @@
 <% layout("/layouts/boilerplate") %>
-<body>
-    <div class="row">
-    <div class="col-8 offset-2">
+<section class="form-shell">
+    <div class="col-lg-8">
+    <div class="form-card">
     <form method="POST" action="/listings" 
         novalidate class="needs-validation" enctype="multipart/form-data">
-        <h1 class="mt-3">Create a new post</h1>
-        <div  class="mb-3">
-            <label for="title"  class="form-label">Title</label>
-            <input  type ="text" placeholder="enter title" name="listing[title]" class="form-control" required>
+        <span class="form-kicker">Create Space</span>
+        <h1 class="form-title">Create a New Listing</h1>
+        <p class="form-copy">Set the category, guest count, and gallery properly so search and booking feel clean from the start.</p>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input id="title" type="text" placeholder="Enter title" name="listing[title]" class="form-control" required>
             <div class="valid-feedback">Title looks good!</div>
-            <div class="invalid-feedback">Need a title</div>
-
+            <div class="invalid-feedback">Please add a title.</div>
         </div>
         
-        <div  class="mb-3">
-            <label for="description" class="form-label"> Description</label>
-            <textarea type ="text" placeholder="enter description" name="listing[description]" class="form-control" required></textarea>
-
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" placeholder="Enter description" name="listing[description]" class="form-control" required></textarea>
             <div class="valid-feedback">Description is good!</div>
-            <div class="invalid-feedback">Need a description</div>
+            <div class="invalid-feedback">Please add a description.</div>
         </div>
         
-        <div  class="mb-3">
+        <div class="listing-form-grid">
+            <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input id="price" type="number" placeholder="Enter price" name="listing[price]" class="form-control" min="0" required>
+                <div class="invalid-feedback">Please set a valid price.</div>
+            </div>
+            <div class="mb-3">
+                <label for="maxGuests" class="form-label">Max Guests</label>
+                <input id="maxGuests" type="number" min="1" value="2" name="listing[maxGuests]" class="form-control" required>
+            </div>
+        </div>
 
-            <label for="price" class="form-label" > Price</label>
-            <input  type ="number" placeholder="enter price" name="listing[price]" class="form-control" required>
-           
-            
-            <div class="invalid-feedback">Set a price</div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select id="category" name="listing[category]" class="form-select">
+                <% for (const category of categories) { %>
+                    <option value="<%= category %>"><%= category %></option>
+                <% } %>
+            </select>
         </div>
        
-        <div  class="mb-3">
-            <label for="img">Uplode Image</label>
-            <input  type ="file" name="listing[image]" class="form-control" >
-            
-
-            <div class="invalid-feedback">Set a price</div>
+        <div class="mb-3">
+            <label for="img">Upload Gallery Images</label>
+            <input id="img" type="file" name="listing[images]" class="form-control" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple>
+            <div class="form-text">Upload up to 6 images. The first image becomes the cover.</div>
         </div>
         
-        <div  class="mb-3">
-            <label for="location" class="form-label"> Location</label>
-            <input  type ="text" placeholder="enter location" name="listing[location]" class="form-control" required>
-
+        <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input id="location" type="text" placeholder="Enter location" name="listing[location]" class="form-control" required>
             <div class="valid-feedback">Location set</div>
-            <div class="invalid-feedback">Need the location</div>
+            <div class="invalid-feedback">Please enter a location.</div>
         </div>
-        <div  class="mb-3 ">
-            <label for="country" class="form-label"> Country</label>
-            <input  type ="text" placeholder="enter country" name="listing[country]" class="form-control" required>
-
+        <div class="mb-3">
+            <label for="country" class="form-label">Country</label>
+            <input id="country" type="text" placeholder="Enter country" name="listing[country]" class="form-control" required>
             <div class="valid-feedback">Country set</div>
-            <div class="invalid-feedback">Need a country name</div>
+            <div class="invalid-feedback">Please enter a country.</div>
         </div>
         
-        
-        <button class="btn btn-outline-success mt-3">Add</button>
-        <br>
-        <br>
+        <button class="btn btn-warm submit-btn">Add Listing</button>
     </form>
+    <p class="form-copy mt-4 mb-0">Tip: real city names, a useful category, and a full gallery improve both discovery and booking flow.</p>
+    </div>
 </div>
-</div>
-    
-</body>
+</section>
