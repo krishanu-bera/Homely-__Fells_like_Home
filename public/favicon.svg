@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="homely logo">
+  <defs>
+    <linearGradient id="homelyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d9ff63"/>
+      <stop offset="100%" stop-color="#b8f040"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="#12344a"/>
+  <path d="M16 31.5 32 18l16 13.5v14.8A3.7 3.7 0 0 1 44.3 50H19.7A3.7 3.7 0 0 1 16 46.3Z" fill="url(#homelyGradient)"/>
+  <path d="M23.5 48V33.5h7.6v5.7h1.8v-5.7h7.6V48h-4.5v-4.7h-8V48Z" fill="#12344a"/>
+  <path d="M12.8 30.3 32 14l19.2 16.3" fill="none" stroke="#f7fbef" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.2"/>
+</svg>
